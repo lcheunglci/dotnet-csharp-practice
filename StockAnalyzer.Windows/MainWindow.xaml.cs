@@ -1,11 +1,13 @@
 ﻿using Newtonsoft.Json;
 using StockAnalyzer.Core;
 using StockAnalyzer.Core.Domain;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Navigation;
 
@@ -26,14 +28,29 @@ public partial class MainWindow : Window
     private async void Search_Click(object sender, RoutedEventArgs e)
     {
         BeforeLoadingStockData();
-        var store = new DataStore();
-        var responseTask = store.GetStockPrices(StockIdentifier.Text);
 
-        Stocks.ItemsSource = await responseTask;
-        // when responseTask 
-        // code below run responseTask has completed
+        var getStocksTask = GetStocks();
+
+        await getStocksTask;
 
         AfterLoadingStockData();
+    }
+
+    private async Task GetStocks()
+    {
+        try
+        {
+            var store = new DataStore();
+            var responseTask = store.GetStockPrices(StockIdentifier.Text);
+            Stocks.ItemsSource = await responseTask;
+        }
+        catch (Exception ex)
+        {
+            Notes.Text = ex.Message;
+        }
+
+        // when responseTask 
+        // code below run responseTask has completed
     }
 
     private void BeforeLoadingStockData()
