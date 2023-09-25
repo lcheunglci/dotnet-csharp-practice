@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Markup;
 using System.Windows.Navigation;
 
 namespace StockAnalyzer.Windows;
@@ -29,10 +30,18 @@ public partial class MainWindow : Window
         {
             BeforeLoadingStockData();
 
-            await Task.Run(() =>
+            var loadLinesTask = Task.Run(() =>
             {
                 var lines = File.ReadAllLines("StockPrices_Small.csv");
 
+
+                return lines;
+            });
+
+
+            var processStockTask = loadLinesTask.ContinueWith((completedTask) =>
+            {
+                var lines = completedTask.Result;
                 var data = new List<StockPrice>();
 
                 foreach (var line in lines.Skip(1))
@@ -42,9 +51,16 @@ public partial class MainWindow : Window
                     data.Add(price);
                 }
 
+
+                Stocks.ItemsSource = data.Where(sp => sp.Identifier == StockIdentifier.Text);
+
+            });
+
+            _ = processStockTask.ContinueWith(_ =>
+            {
                 Dispatcher.Invoke(() =>
                 {
-                    Stocks.ItemsSource = data.Where(sp => sp.Identifier == StockIdentifier.Text);
+                    AfterLoadingStockData();
                 });
             });
         }
