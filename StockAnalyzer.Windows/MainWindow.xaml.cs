@@ -24,16 +24,21 @@ public partial class MainWindow : Window
 
 
 
-    private async void Search_Click(object sender, RoutedEventArgs e)
+    private void Search_Click(object sender, RoutedEventArgs e)
     {
         try
         {
             BeforeLoadingStockData();
 
-            var loadLinesTask = Task.Run(() =>
+            var loadLinesTask = Task.Run(async () =>
             {
-                var lines = File.ReadAllLines("StockPrices_Small.csv");
+                using var stream = new StreamReader(File.OpenRead("StockPrices_Small.csv"));
+                var lines = new List<string>();
 
+                while (await stream.ReadLineAsync() is string line)
+                {
+                    lines.Add(line);
+                }
 
                 return lines;
             });
