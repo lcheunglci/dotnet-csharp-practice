@@ -1,5 +1,6 @@
 ﻿using StockAnalyzer.Core;
 using StockAnalyzer.Core.Domain;
+using StockAnalyzer.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,7 +26,7 @@ public partial class MainWindow : Window
     CancellationTokenSource? cancellationTokenSource;
 
 
-    private void Search_Click(object sender, RoutedEventArgs e)
+    private async void Search_Click(object sender, RoutedEventArgs e)
     {
         if (cancellationTokenSource is not null)
         {
@@ -53,48 +54,57 @@ public partial class MainWindow : Window
             Search.Content = "Cancel"; // Button text
 
             BeforeLoadingStockData();
-            Task<List<string>> loadLinesTask = SearchForStocks(cancellationTokenSource.Token);
 
-            loadLinesTask.ContinueWith(t =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    Notes.Text = t.Exception?.InnerException?.InnerException?.Message;
-                });
+            var service = new StockService();
 
-            }, TaskContinuationOptions.OnlyOnFaulted);
+            var data = await service.GetStockPricesFor(
+                StockIdentifier.Text,
+                cancellationTokenSource.Token);
 
-            var processStockTask = loadLinesTask.ContinueWith((completedTask) =>
-            {
-                var lines = completedTask.Result;
-                var data = new List<StockPrice>();
+            Stocks.ItemsSource = data;
 
-                foreach (var line in lines.Skip(1))
-                {
-                    var price = StockPrice.FromCSV(line);
+            //Task<List<string>> loadLinesTask = SearchForStocks(cancellationTokenSource.Token);
 
-                    data.Add(price);
-                }
+            //loadLinesTask.ContinueWith(t =>
+            //{
+            //    Dispatcher.Invoke(() =>
+            //    {
+            //        Notes.Text = t.Exception?.InnerException?.InnerException?.Message;
+            //    });
+
+            //}, TaskContinuationOptions.OnlyOnFaulted);
+
+            //var processStockTask = loadLinesTask.ContinueWith((completedTask) =>
+            //{
+            //    var lines = completedTask.Result;
+            //    var data = new List<StockPrice>();
+
+            //    foreach (var line in lines.Skip(1))
+            //    {
+            //        var price = StockPrice.FromCSV(line);
+
+            //        data.Add(price);
+            //    }
 
 
-                Stocks.ItemsSource = data.Where(sp => sp.Identifier == StockIdentifier.Text);
+            //    Stocks.ItemsSource = data.Where(sp => sp.Identifier == StockIdentifier.Text);
 
-            },
-            cancellationTokenSource.Token, TaskContinuationOptions.OnlyOnRanToCompletion,
-            TaskScheduler.Current);
+            //},
+            //cancellationTokenSource.Token, TaskContinuationOptions.OnlyOnRanToCompletion,
+            //TaskScheduler.Current);
 
-            _ = processStockTask.ContinueWith(_ =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    AfterLoadingStockData();
+            //_ = processStockTask.ContinueWith(_ =>
+            //{
+            //    Dispatcher.Invoke(() =>
+            //    {
+            //        AfterLoadingStockData();
 
-                    cancellationTokenSource?.Dispose();
-                    cancellationTokenSource = null;
+            //        cancellationTokenSource?.Dispose();
+            //        cancellationTokenSource = null;
 
-                    Search.Content = "Search";
-                });
-            });
+            //        Search.Content = "Search";
+            //    });
+            //});
         }
         catch (Exception ex)
         {
@@ -103,6 +113,10 @@ public partial class MainWindow : Window
         finally
         {
             AfterLoadingStockData();
+            cancellationTokenSource?.Dispose();
+            cancellationTokenSource = null;
+
+            Search.Content = "Search";
         }
     }
 
