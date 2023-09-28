@@ -55,13 +55,23 @@ public partial class MainWindow : Window
 
             BeforeLoadingStockData();
 
+            var identifiers = StockIdentifier.Text.Split(',', ' ');
+
             var service = new StockService();
 
-            var data = await service.GetStockPricesFor(
-                StockIdentifier.Text,
-                cancellationTokenSource.Token);
+            var loadingTask = new List<Task<IEnumerable<StockPrice>>>();
 
-            Stocks.ItemsSource = data;
+            foreach ( var identifier in identifiers )
+            {
+                var loadTask = service.GetStockPricesFor(
+                    identifier,
+                    cancellationTokenSource.Token);
+                loadingTask.Add(loadTask);
+            }
+
+            var allStocks = await Task.WhenAll(loadingTask);
+
+            Stocks.ItemsSource = allStocks.SelectMany(x => x);
 
             //Task<List<string>> loadLinesTask = SearchForStocks(cancellationTokenSource.Token);
 
