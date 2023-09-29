@@ -57,7 +57,7 @@ public partial class MainWindow : Window
 
             var identifiers = StockIdentifier.Text.Split(',', ' ');
 
-            var service = new StockService();
+            var service = new MockStockService();
 
             var loadingTask = new List<Task<IEnumerable<StockPrice>>>();
 
