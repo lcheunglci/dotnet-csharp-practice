@@ -2,6 +2,7 @@
 using StockAnalyzer.Windows.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -36,5 +37,26 @@ public class MockStockStreamService : IStockStreamService
         await Task.Delay(500, cancellationToken);
 
         yield return new StockPrice { Identifier = "GOOG", Change = 0.8m };
+    }
+}
+
+public class StockDiskStreamService : IStockStreamService
+{
+    public async IAsyncEnumerable<StockPrice> GetAllStockPrices([EnumeratorCancellation]CancellationToken cancellationToken = default)
+    {
+        using var stream = new StreamReader(File.OpenRead("StockPrices_Small.csv"));
+
+        await stream.ReadLineAsync(); // SKip header row in the file
+
+        while (await stream.ReadLineAsync() is string line)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+
+            yield return StockPrice.FromCSV(line);
+
+        }
     }
 }

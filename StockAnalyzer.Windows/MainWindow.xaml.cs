@@ -40,7 +40,7 @@ public partial class MainWindow : Window
 
             Stocks.ItemsSource = data;
 
-            var service = new MockStockStreamService();
+            var service = new StockDiskStreamService();
 
             var enumerator = service.GetAllStockPrices();
 
