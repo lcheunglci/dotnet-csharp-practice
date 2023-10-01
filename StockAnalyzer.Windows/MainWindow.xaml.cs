@@ -4,6 +4,7 @@ using StockAnalyzer.Core.Services;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -31,13 +32,39 @@ public partial class MainWindow : Window
     {
         try
         {
-            var data = await GetStocksFor(StockIdentifier.Text);
-            Notes.Text = "Stocks loaded!";
+            BeforeLoadingStockData();
+
+            var identifiers = StockIdentifier.Text.Split(' ',',');
+
+            var data = new ObservableCollection<StockPrice>();
+
             Stocks.ItemsSource = data;
+
+            var service = new MockStockStreamService();
+
+            var enumerator = service.GetAllStockPrices();
+
+            await foreach ( var item in enumerator
+                // You can implement cancellation on your own!
+                .WithCancellation(CancellationToken.None))
+            {
+                if (identifiers.Contains(item.Identifier))
+                {
+                    data.Add(item);
+                }
+            }
+
+            //var data = await GetStocksFor(StockIdentifier.Text);
+            //Notes.Text = "Stocks loaded!";
+            //Stocks.ItemsSource = data;
         }
         catch (Exception ex)
         {
             Notes.Text = ex.Message;
+        }
+        finally
+        {
+            AfterLoadingStockData();
         }
 
         //if (cancellationTokenSource is not null)
