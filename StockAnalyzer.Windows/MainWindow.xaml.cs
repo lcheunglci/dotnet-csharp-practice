@@ -36,14 +36,20 @@ public partial class MainWindow : Window
             //Task.Run(SearchForStocks).Wait();
 
             BeforeLoadingStockData();
-            var progress = new Progress<IEnumerable<StockPrice>>();
-            progress.ProgressChanged += (_, stocks) =>
-            {
-                StockProgress.Value += 1;
-                Notes.Text += $"Loaded {stocks.Count()} for {stocks.First().Identifier}{Environment.NewLine}";
-            };
 
-            await SearchForStocks(progress);
+            var data = await SearchForStocks();
+
+            Stocks.ItemsSource = data.Where(price => price.Identifier == StockIdentifier.Text);
+
+            // For showing progress
+            //var progress = new Progress<IEnumerable<StockPrice>>();
+            //progress.ProgressChanged += (_, stocks) =>
+            //{
+            //    StockProgress.Value += 1;
+            //    Notes.Text += $"Loaded {stocks.Count()} for {stocks.First().Identifier}{Environment.NewLine}";
+            //};
+
+            //await SearchForStocks(progress);
         }
         catch (Exception ex)
         {
@@ -254,6 +260,27 @@ public partial class MainWindow : Window
         return data.Take(5);
     }
 
+    private Task<IEnumerable<StockPrice>> SearchForStocks()
+    {
+        var tcs = new TaskCompletionSource<IEnumerable<StockPrice>>();
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            var lines = File.ReadAllLines("StockPrices_Small.csv");
+            var prices = new List<StockPrice>();
+
+            foreach (var line in lines.Skip(1))
+            {
+                prices.Add(StockPrice.FromCSV(line));
+            }
+
+            // Communicate the result of 'prices'
+            tcs.SetResult(prices);
+        });
+
+        //  return a Task<IEnumerable<StockPrice>>
+        return tcs.Task;
+    }
+
     private static Task<List<string>> SearchForStocks(CancellationToken cancellationToken)
     {
         return Task.Run(async () =>
@@ -315,5 +342,6 @@ public partial class MainWindow : Window
     {
         Application.Current.Shutdown();
     }
-}
+
+
 }
