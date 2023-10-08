@@ -5,7 +5,7 @@ var task = Task.Factory.StartNew((async () =>
 {
     await Task.Delay(2000);
     return "Completed";
-}, Unwrap();
+})).Unwrap();
 
 var result = task;
 
