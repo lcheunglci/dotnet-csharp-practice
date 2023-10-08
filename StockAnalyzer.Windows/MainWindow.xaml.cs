@@ -19,6 +19,7 @@ public partial class MainWindow : Window
 {
     private static string API_URL = "https://ps-async.fekberg.com/api/stocks";
     private Stopwatch stopwatch = new Stopwatch();
+    private Random random = new Random();
 
     public MainWindow()
     {
@@ -225,6 +226,44 @@ public partial class MainWindow : Window
         //    Search.Content = "Search";
         //}
     }
+
+
+    private IEnumerable<StockPrice> Generate(string stockIdentifier)
+    {
+        return Enumerable.Range(1, random.Next(10, 250))
+            .Select(x => new StockPrice
+            {
+                Identifier = stockIdentifier,
+                Open = random.Next(10, 1024)
+            });
+    }
+
+    private StockCalculation Calculate(IEnumerable<StockPrice> prices)
+    {
+        #region Start stopwatch
+        var calculation = new StockCalculation();
+        var watch = new Stopwatch();
+        watch.Start();
+        #endregion
+
+        var end = DateTime.UtcNow.AddSeconds(4);
+
+        // Spin a loop for a few seconds to simulate load
+        while (DateTime.UtcNow < end)
+        { }
+
+        #region Return a result
+        calculation.Identifier = prices.First().Identifier;
+        calculation.Result = prices.Average(s => s.Open);
+
+        watch.Stop();
+
+        calculation.TotalSeconds = watch.Elapsed.Seconds;
+
+        return calculation;
+        #endregion
+    }
+
 
 
     private async Task SearchForStocks(IProgress<IEnumerable<StockPrice>> progress)
