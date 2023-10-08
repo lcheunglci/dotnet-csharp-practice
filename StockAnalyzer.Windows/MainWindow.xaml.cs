@@ -2,6 +2,7 @@
 using StockAnalyzer.Core.Domain;
 using StockAnalyzer.Core.Services;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -38,9 +39,39 @@ public partial class MainWindow : Window
 
             BeforeLoadingStockData();
 
-            var data = await SearchForStocks();
+            var stocks = new Dictionary<string, IEnumerable<StockPrice>>()
+            {
+                //
+            };
 
-            Stocks.ItemsSource = data.Where(price => price.Identifier == StockIdentifier.Text);
+            var bag = new ConcurrentBag<StockCalculation>();
+
+            Parallel.Invoke(
+                () => {
+                    var msft = Calculate(stocks["MSFT"]);
+                    bag.Add(msft);
+                },
+                () => {
+                    var aapl = Calculate(stocks["AAPL"]);
+                    bag.Add(aapl);
+                },
+                () => { var googl = Calculate(stocks["GOOGL"]);
+                    bag.Add(googl);
+                },
+                () =>
+                {
+                    var cat = Calculate(stocks["CAT"]);
+                    bag.Add(cat);
+                }
+                );
+
+            Stocks.ItemsSource = bag;
+
+            AfterLoadingStockData();
+
+            // var data = await SearchForStocks();
+
+            //Stocks.ItemsSource = data.Where(price => price.Identifier == StockIdentifier.Text);
 
             // For showing progress
             //var progress = new Progress<IEnumerable<StockPrice>>();
