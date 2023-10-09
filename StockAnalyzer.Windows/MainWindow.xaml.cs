@@ -41,7 +41,12 @@ public partial class MainWindow : Window
 
             var stocks = new Dictionary<string, IEnumerable<StockPrice>>()
             {
-                //
+                { "MSFT", Generate("MSFT") },
+                { "GOOGL", Generate("GOOGL") },
+                { "PS", Generate("PS") },
+                { "AAPL", Generate("AAPL") },
+                { "CAT", Generate("CAT") },
+                { "AMAZ", Generate("AMAZ") }
             };
 
             var bag = new ConcurrentBag<StockCalculation>();
