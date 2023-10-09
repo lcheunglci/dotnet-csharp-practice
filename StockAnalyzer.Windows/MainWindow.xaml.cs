@@ -46,24 +46,33 @@ public partial class MainWindow : Window
 
             var bag = new ConcurrentBag<StockCalculation>();
 
-            Parallel.Invoke(
-                () => {
-                    var msft = Calculate(stocks["MSFT"]);
-                    bag.Add(msft);
-                },
-                () => {
-                    var aapl = Calculate(stocks["AAPL"]);
-                    bag.Add(aapl);
-                },
-                () => { var googl = Calculate(stocks["GOOGL"]);
-                    bag.Add(googl);
-                },
-                () =>
-                {
-                    var cat = Calculate(stocks["CAT"]);
-                    bag.Add(cat);
-                }
-                );
+
+            await Task.Run(() =>
+            {
+                Parallel.Invoke(
+                    // new ParallelOptions { MaxDegreeOfParallelism = 2 },
+                    () =>
+                    {
+                        var msft = Calculate(stocks["MSFT"]);
+                        bag.Add(msft);
+                    },
+                    () =>
+                    {
+                        var aapl = Calculate(stocks["AAPL"]);
+                        bag.Add(aapl);
+                    },
+                    () =>
+                    {
+                        var googl = Calculate(stocks["GOOGL"]);
+                        bag.Add(googl);
+                    },
+                    () =>
+                    {
+                        var cat = Calculate(stocks["CAT"]);
+                        bag.Add(cat);
+                    }
+                    );
+            });
 
             Stocks.ItemsSource = bag;
 
