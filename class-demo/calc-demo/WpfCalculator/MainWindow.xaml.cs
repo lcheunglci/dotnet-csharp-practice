@@ -1,4 +1,5 @@
 ﻿using Demo.Math;
+using System.Windows;
 namespace WpfCalculator;
 
 
@@ -12,5 +13,8 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    
+    private void Window_Loaded(object sender, System.Windows.RoutedEventArgs e)
+    {
+        MessageBox.Show(Calculator.Add(12, 3).ToString());
+    }
 }
