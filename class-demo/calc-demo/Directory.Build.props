@@ -1,0 +1,6 @@
+<Project>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyCopyrightAttribute">
+      <_Parameter1>Demo</_Parameter1>
+  </ItemGroup>
+</Project>
