@@ -18,6 +18,7 @@ if (operation == "+")
 {
     var result = Calculator.Add(number1, number2);
     WriteLine($"The result is: {result}");
+    WriteLine($"The result in hexadecimal is: {Calculator.AsHex(result)}");
 }
 else
 {
