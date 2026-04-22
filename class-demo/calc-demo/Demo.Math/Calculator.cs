@@ -35,6 +35,20 @@
             // throw new System.PlatformNotSupportedException("This code should not be reached, as the preprocessor should prevent it.");
 #endif
         }
+
+
+        public static bool IsWriteAsHexSupported
+        {
+            get
+            {
+#if NET6_0_OR_GREATER || NETFRAMEWORK || NETSTANDARD2_0
+                return true;
+#else
+                return false;
+#endif
+
+            }
+        }
     }
 
 }
