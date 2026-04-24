@@ -16,7 +16,7 @@ public partial class MainWindow : Window
     private void Window_Loaded(object sender, System.Windows.RoutedEventArgs e)
     {
         // MessageBox.Show(Calculator.Add(12, 3).ToString());
-        int result = Calculator..Add(12, 3);
+        int result = Calculator.Add(12, 3);
         MessageBox.Show(Calculator.AsHex(result));
     }
 }

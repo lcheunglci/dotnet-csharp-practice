@@ -9,7 +9,7 @@ namespace Demo.Math.Test2
         {
             var result = Calculator.Add(40, 2);
 
-            Assert.That(result).Is.EqualTo(42);
+            Assert.That(result, Is.EqualTo(42));
         }
     }
 }
