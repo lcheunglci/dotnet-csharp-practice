@@ -49,6 +49,11 @@
 
             }
         }
+
+        internal static void SomeMethod()
+        {
+
+        }
     }
 
 }

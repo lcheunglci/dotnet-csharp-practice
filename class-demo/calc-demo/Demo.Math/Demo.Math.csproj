@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="Demo.Math.Test2"/>
+	</ItemGroup>
+	
 </Project>

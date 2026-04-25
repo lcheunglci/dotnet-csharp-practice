@@ -11,5 +11,11 @@ namespace Demo.Math.Test2
 
             Assert.That(result, Is.EqualTo(42));
         }
+
+        [Test]
+        public void Internal()
+        {
+            Calculator.SomeMethod();
+        }
     }
 }
