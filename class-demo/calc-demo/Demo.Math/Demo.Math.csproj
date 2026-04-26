@@ -4,10 +4,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyVersion>2.1.3.4</AssemblyVersion>
+    <FileVersion>4.3.2.1</FileVersion>
+	  <InformationalVersion>2 beta 4</InformationalVersion>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="Demo.Math.Test2"/>
+		<InternalsVisibleTo Include="Demo.Math.Test2" />
 	</ItemGroup>
 	
 </Project>
