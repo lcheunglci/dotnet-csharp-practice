@@ -8,6 +8,11 @@
     <FileVersion>4.3.2.1</FileVersion>
 	  <InformationalVersion>2 beta 4</InformationalVersion>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <Authors>lci</Authors>
+	  <Description>Contains general math related functionality.</Description>
+	  <PackageProjectUrl>https://www.github.com/lcheunglci</PackageProjectUrl>
+	  <PackageReleaseNotes>This version add a new hex display feature.</PackageReleaseNotes>
+	  <PackageLicenseExpression>0BSD</PackageLicenseExpression>
   </PropertyGroup>
 
 	<ItemGroup>
