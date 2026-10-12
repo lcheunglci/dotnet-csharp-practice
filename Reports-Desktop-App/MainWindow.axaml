@@ -2,8 +2,41 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:models="clr-namespace:Reports_Desktop_App.Models;assembly=Reports_Desktop_App"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
         x:Class="Reports_Desktop_App.MainWindow"
-        Title="Reports_Desktop_App">
-    Welcome to Avalonia!
+        Title="Reports Insight"
+        Width="1000" Height="700">
+
+  <Window.Styles>
+    <FluentTheme />
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="250,*">
+
+    <!-- Sidebar Navigation -->
+    <Border Grid.RowSpan="3"
+            Background="#F3F4F6"
+            BorderBrush="#E5E7EB"
+            BorderThickness="0,0,1,0"
+            Padding="16">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Reports Insight" FontSize="20" FontWeight="Bold" Margin="0,0,0,16" />
+        <Button x:Name="ImportBtn" Content="Import CSV" Margin="0,4" HorizontalAlignment="Stretch" />
+        <Button x:Name="ExportBtn" Content="Export Report" Margin="0,4" HorizontalAlignment="Stretch" />
+        <TextBlock Text="Navigation" FontWeight="SemiBold" FontSize="12" Margin="0,16,0,4" Foreground="#6B7280" />
+        <Button x:Name="ReportsBtn" Content="Reports List" HorizontalAlignment="Stretch" />
+      </StackPanel>
+    </Border>
+
+    <!-- Main Content Area -->
+    <ScrollViewer Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="16">
+      <StackPanel x:Name="ContentArea" Spacing="16" />
+    </ScrollViewer>
+
+    <!-- Footer -->
+    <Border Grid.Row="2" Grid.Column="1" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Padding="12,8">
+      <TextBlock Text="Porting Electron/Angular Report App to Avalonia (PROJECT.md)" FontSize="12" Foreground="#6B7280" />
+    </Border>
+  </Grid>
 </Window>
