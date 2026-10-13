@@ -47,7 +47,7 @@ Files read from `Reports-Desktop-App/`:
 - `App.axaml`: Standard Avalonia `Application` root
 - `MainWindow.axaml` / `MainWindow.axaml.cs`: Default window
 
-**Status:** Minimal skeleton — no database, no CSV parsing, no file dialogs, no data grid, no export functionality.
+**Status:** Implemented — `ReportRepository` (SQLite CRUD + CSV import + JSON/XLSX export), `MainWindow.axaml` UI with sidebar navigation and card-based reports list, `App.axaml` for desktop lifetime. Import uses `System.Windows.Forms.OpenFileDialog`; export and detail views are basic.
 
 ---
 

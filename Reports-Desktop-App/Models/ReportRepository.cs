@@ -329,9 +329,13 @@ public class ReportRepository
     /// </summary>
     private class CsvReportRow
     {
+        [CsvHelper.Configuration.Attributes.Name("date")]
         public string? Date { get; set; }
+        [CsvHelper.Configuration.Attributes.Name("orderId")]
         public int? OrderId { get; set; }
+        [CsvHelper.Configuration.Attributes.Name("description")]
         public string? Description { get; set; }
+        [CsvHelper.Configuration.Attributes.Name("cost")]
         public decimal? Cost { get; set; }
     }
 

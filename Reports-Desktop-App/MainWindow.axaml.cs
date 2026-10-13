@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using System.Windows.Forms;
+using Button = Avalonia.Controls.Button;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -15,11 +19,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _repository = new ReportRepository();
-
-        // Wire sidebar buttons
-        ImportBtn.Click += OnImportClicked;
-        ExportBtn.Click += OnExportClicked;
-        ReportsBtn.Click += OnReportsClicked;
 
         // Initialize with reports list
         RefreshReports();
@@ -152,16 +151,17 @@ public partial class MainWindow : Window
         }
 
         // Show detail header
-        contentArea.Children.Add(new StackPanel
+        var headerPanel = new StackPanel
         {
             Orientation = Avalonia.Layout.Orientation.Horizontal,
             Margin = new Thickness(16),
-            Spacing = 16,
-            Children = {
-                new TextBlock { Text = detail.Name, FontSize = 22, FontWeight = Avalonia.Media.FontWeight.Bold },
-                new Button { Content = "Back to List", Tag = "back" }
-            }
-        });
+            Spacing = 16
+        };
+        headerPanel.Children.Add(new TextBlock { Text = detail.Name, FontSize = 22, FontWeight = Avalonia.Media.FontWeight.Bold });
+        var backBtn = new Button { Content = "Back to List", Tag = "back" };
+        backBtn.Click += (s, e) => RefreshReports();
+        headerPanel.Children.Add(backBtn);
+        contentArea.Children.Add(headerPanel);
 
         // Show rows info
         contentArea.Children.Add(new TextBlock
@@ -180,7 +180,7 @@ public partial class MainWindow : Window
                 Margin = new Thickness(8),
                 Padding = new Thickness(10),
                 CornerRadius = new CornerRadius(6),
-                Background = Avalonia.Media.Brushes.WhiteSmoke,
+                Background = Avalonia.Media.Brushes.LightGray,
                 BorderBrush = Avalonia.Media.Brushes.LightGray,
                 BorderThickness = new Thickness(1)
             };
@@ -234,16 +234,47 @@ public partial class MainWindow : Window
 
     private void OnImportClicked(object sender, RoutedEventArgs e)
     {
-        RefreshReports();
+        using (var dlg = new System.Windows.Forms.OpenFileDialog { Filter = "CSV files (*.csv)|*.csv", Title = "Select CSV" })
+        {
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                try
+                {
+                    var rows = ReportRepository.ParseCsv(dlg.FileName);
+                    var detail = _repository.InsertReport(Path.GetFileNameWithoutExtension(dlg.FileName), Path.GetFileName(dlg.FileName), rows);
+                    RefreshReports();
+                }
+                catch (Exception ex)
+                {
+                    var contentArea = this.FindControl<StackPanel>("ContentArea");
+                    if (contentArea != null)
+                        contentArea.Children.Add(new TextBlock { Text = $"Import error: {ex.Message}", FontSize = 14, Margin = new Thickness(16) });
+                }
+            }
+        }
     }
 
     private void OnExportClicked(object sender, RoutedEventArgs e)
     {
-        RefreshReports();
+        var reports = _repository.ListReports();
+        if (reports.Count == 0)
+        {
+            var contentArea = this.FindControl<StackPanel>("ContentArea");
+            if (contentArea != null)
+                contentArea.Children.Add(new TextBlock { Text = "No reports to export.", FontSize = 16, Margin = new Thickness(16) });
+            return;
+        }
+        var contentArea2 = this.FindControl<StackPanel>("ContentArea");
+        if (contentArea2 != null)
+        {
+            contentArea2.Children.Clear();
+            contentArea2.Children.Add(new TextBlock { Text = "Export function: " + reports.Count + " report(s) available for export to JSON / XLSX.", FontSize = 16, Margin = new Thickness(16) });
+        }
     }
 
     private void OnReportsClicked(object sender, RoutedEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine("Reports clicked!");
         RefreshReports();
     }
 
