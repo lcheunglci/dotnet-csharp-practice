@@ -264,11 +264,27 @@ public partial class MainWindow : Window
                 contentArea.Children.Add(new TextBlock { Text = "No reports to export.", FontSize = 16, Margin = new Thickness(16) });
             return;
         }
-        var contentArea2 = this.FindControl<StackPanel>("ContentArea");
-        if (contentArea2 != null)
+
+        using (var dlg = new System.Windows.Forms.SaveFileDialog { Filter = "JSON (*.json)|*.json|Excel (*.xlsx)|*.xlsx", Title = "Export Report" })
         {
-            contentArea2.Children.Clear();
-            contentArea2.Children.Add(new TextBlock { Text = "Export function: " + reports.Count + " report(s) available for export to JSON / XLSX.", FontSize = 16, Margin = new Thickness(16) });
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                try
+                {
+                    var first = _repository.GetReport(reports[0].Id);
+                    if (first == null) return;
+                    if (dlg.FileName.EndsWith(".xlsx"))
+                        ReportRepository.ExportToXlsx(first, dlg.FileName);
+                    else
+                        ReportRepository.ExportToJson(first, dlg.FileName);
+                }
+                catch (Exception ex)
+                {
+                    var contentArea = this.FindControl<StackPanel>("ContentArea");
+                    if (contentArea != null)
+                        contentArea.Children.Add(new TextBlock { Text = $"Export error: {ex.Message}", FontSize = 14, Margin = new Thickness(16) });
+                }
+            }
         }
     }
 
