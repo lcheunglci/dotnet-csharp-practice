@@ -87,7 +87,8 @@ public partial class MainWindow : Window
         {
             Text = report.Name,
             FontWeight = Avalonia.Media.FontWeight.Bold,
-            FontSize = 16
+            FontSize = 16,
+            Foreground = Avalonia.Media.Brushes.Black
         };
         stack.Children.Add(nameBlock);
 
@@ -97,9 +98,9 @@ public partial class MainWindow : Window
             Orientation = Avalonia.Layout.Orientation.Horizontal,
             Spacing = 16
         };
-        metaRow.Children.Add(new TextBlock { Text = $"Source: {report.SourceFile}", Foreground = Avalonia.Media.Brushes.Gray, FontSize = 11 });
-        metaRow.Children.Add(new TextBlock { Text = $"Imported: {report.ImportedAt:yyyy-MM-dd HH:mm}", Foreground = Avalonia.Media.Brushes.Gray, FontSize = 11 });
-        metaRow.Children.Add(new TextBlock { Text = $"Rows: {report.RowCount}", Foreground = Avalonia.Media.Brushes.Gray, FontSize = 11 });
+        metaRow.Children.Add(new TextBlock { Text = $"Source: {report.SourceFile}", Foreground = Avalonia.Media.Brushes.Black, FontSize = 11 });
+        metaRow.Children.Add(new TextBlock { Text = $"Imported: {report.ImportedAt:yyyy-MM-dd HH:mm}", Foreground = Avalonia.Media.Brushes.Black, FontSize = 11 });
+        metaRow.Children.Add(new TextBlock { Text = $"Rows: {report.RowCount}", Foreground = Avalonia.Media.Brushes.Black, FontSize = 11 });
         stack.Children.Add(metaRow);
 
         // Action buttons
@@ -110,24 +111,26 @@ public partial class MainWindow : Window
             Margin = new Thickness(0, 8, 0, 0)
         };
 
-        var viewBtn = new Button
+        var viewBtn = new TextBlock
         {
-            Content = "View",
-            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Colors.LightBlue),
-            Foreground = Avalonia.Media.Brushes.Black,
-            Padding = new Thickness(8, 4)
+            Text = "View",
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Colors.DarkBlue),
+            Foreground = Avalonia.Media.Brushes.White,
+            Padding = new Thickness(8, 4),
+            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
         };
-        viewBtn.Click += (s, e) => ShowReportDetail(report);
+        viewBtn.PointerPressed += (s, e) => ShowReportDetail(report);
         actions.Children.Add(viewBtn);
 
-        var deleteBtn = new Button
+        var deleteBtn = new TextBlock
         {
-            Content = "Delete",
-            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Colors.IndianRed),
+            Text = "Delete",
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Colors.DarkRed),
             Foreground = Avalonia.Media.Brushes.White,
-            Padding = new Thickness(8, 4)
+            Padding = new Thickness(8, 4),
+            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
         };
-        deleteBtn.Click += (s, e) => DeleteReport(report);
+        deleteBtn.PointerPressed += (s, e) => DeleteReport(report);
         actions.Children.Add(deleteBtn);
 
         stack.Children.Add(actions);
@@ -186,7 +189,7 @@ public partial class MainWindow : Window
             };
 
             var rowStack = new StackPanel { Spacing = 4 };
-            rowStack.Children.Add(new TextBlock { Text = $"Date: {row.Date:yyyy-MM-dd} | Order: {row.OrderId} | Cost: {row.Cost:C}", FontSize = 12, FontWeight = Avalonia.Media.FontWeight.Bold });
+            rowStack.Children.Add(new TextBlock { Text = $"Date: {row.Date:yyyy-MM-dd} | Order: {row.OrderId} | Cost: {row.Cost:C}", FontSize = 12, FontWeight = Avalonia.Media.FontWeight.Bold, Foreground = Avalonia.Media.Brushes.Black });
             rowStack.Children.Add(new TextBlock { Text = row.Description, FontSize = 11, Foreground = Avalonia.Media.Brushes.DarkSlateGray });
 
             rowCard.Child = rowStack;
@@ -196,39 +199,25 @@ public partial class MainWindow : Window
 
     private void DeleteReport(ReportSummary report)
     {
-        // Confirm deletion with a simple message
-        var confirmBtn = new Button { Content = $"Confirm Delete \"{report.Name}\"?" };
-        confirmBtn.Click += (s, e) =>
-        {
-            var success = _repository.DeleteReport(report.Id);
-            if (success)
-            {
-                RefreshReports();
-            }
-        };
-
         // Replace content temporarily with confirmation
         var contentArea = this.FindControl<StackPanel>("ContentArea");
         if (contentArea != null)
         {
             contentArea.Children.Clear();
-            contentArea.Children.Add(new StackPanel
-            {
-                Margin = new Thickness(16),
-                Spacing = 16,
-                Children = {
-                    new TextBlock { Text = $"Delete report '{report.Name}'?", FontSize = 18, FontWeight = Avalonia.Media.FontWeight.Bold },
-                    new TextBlock { Text = "This will delete all rows associated with this report.", Foreground = Avalonia.Media.Brushes.IndianRed },
-                    new StackPanel {
-                        Orientation = Avalonia.Layout.Orientation.Horizontal,
-                        Spacing = 8,
-                        Children = {
-                            new Button { Content = "Confirm Delete", Background = Avalonia.Media.Brushes.IndianRed, Foreground = Avalonia.Media.Brushes.White, Tag = report },
-                            new Button { Content = "Cancel" }
-                        }
-                    }
-                }
-            });
+            // Delete confirmation with working buttons
+            var confirmPanel = new StackPanel { Margin = new Thickness(16), Spacing = 16 };
+            confirmPanel.Children.Add(new TextBlock { Text = $"Delete report '{report.Name}'?", FontSize = 18, FontWeight = Avalonia.Media.FontWeight.Bold });
+            confirmPanel.Children.Add(new TextBlock { Text = "This will delete all rows associated with this report.", Foreground = Avalonia.Media.Brushes.IndianRed });
+            var btnStack = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 8 };
+            var confirmBtn = new Button { Content = "Confirm Delete", Background = Avalonia.Media.Brushes.IndianRed, Foreground = Avalonia.Media.Brushes.White, Padding = new Thickness(8, 4) };
+            confirmBtn.Click += (s, e) => { _repository.DeleteReport(report.Id); RefreshReports(); };
+            btnStack.Children.Add(confirmBtn);
+            var cancelBtn = new Button { Content = "Cancel", Background = Avalonia.Media.Brushes.LightGray, Foreground = Avalonia.Media.Brushes.Black, Padding = new Thickness(8, 4) };
+            cancelBtn.Click += (s, e) => RefreshReports();
+            btnStack.Children.Add(cancelBtn);
+            confirmPanel.Children.Add(btnStack);
+            contentArea.Children.Clear();
+            contentArea.Children.Add(confirmPanel);
         }
     }
 

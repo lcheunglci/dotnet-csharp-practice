@@ -47,7 +47,7 @@ Files read from `Reports-Desktop-App/`:
 - `App.axaml`: Standard Avalonia `Application` root
 - `MainWindow.axaml` / `MainWindow.axaml.cs`: Default window
 
-**Status:** Implemented — `ReportRepository` (SQLite CRUD + CSV import via `CsvHelper` + JSON/XLSX export via `ClosedXML`), `MainWindow.axaml` UI with sidebar navigation, card-based reports list (`DataGrid`-style cards), import via `WinForms.OpenFileDialog`, export via `WinForms.SaveFileDialog`. Build passes (`net10.0-windows`, `net10.0-windows` for WinForms support). `FindControl<Button>` wiring fixed; `Window.Styles` hover states added. CSV header mapping fixed with `[Name]` attributes. `AGENTS.md` updated. `Reports-Desktop-App.sln` added.
+**Status:** Implemented — `ReportRepository` (SQLite CRUD + CSV import + JSON/XLSX export), `MainWindow.axaml` UI with sidebar navigation, card-based reports list, working Import/Export/Delete, hover/readability fixed (black text on cards, dark button backgrounds), `ReportDetail` view with sort/edit, `Reports-Desktop-App.sln` added, build passes (`net10.0-windows`, 0 errors, 3 advisory warnings). `AGENTS.md` and `PROJECT.md` updated.
 
 ---
 
