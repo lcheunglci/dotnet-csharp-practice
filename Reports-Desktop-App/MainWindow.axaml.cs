@@ -48,7 +48,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Show a header
+        // Show a header with import button
         var header = new StackPanel
         {
             Orientation = Avalonia.Layout.Orientation.Horizontal,
@@ -58,6 +58,17 @@ public partial class MainWindow : Window
                 new TextBlock { Text = $"({reports.Count} reports)", FontSize = 12, Foreground = Avalonia.Media.Brushes.Gray, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center, Margin = new Thickness(10, 4, 0, 0) }
             }
         };
+        var importBtn = new Button
+        {
+            Content = "Import CSV",
+            Foreground = Avalonia.Media.Brushes.Black,
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Colors.LightBlue),
+            Padding = new Thickness(6, 2),
+            Margin = new Thickness(8, 0, 0, 0),
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+        };
+        importBtn.Click += (s, e) => OnImportClicked(null, null);
+        header.Children.Add(importBtn);
         contentArea.Children.Add(header);
 
         // Show reports as cards
@@ -132,6 +143,18 @@ public partial class MainWindow : Window
         };
         deleteBtn.PointerPressed += (s, e) => DeleteReport(report);
         actions.Children.Add(deleteBtn);
+
+        // Export button for this report
+        var exportBtn = new TextBlock
+        {
+            Text = "Export",
+            Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Colors.DarkGreen),
+            Foreground = Avalonia.Media.Brushes.White,
+            Padding = new Thickness(8, 4),
+            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
+        };
+        exportBtn.PointerPressed += (s, e) => ExportReport(report);
+        actions.Children.Add(exportBtn);
 
         stack.Children.Add(actions);
         card.Child = stack;
@@ -243,35 +266,30 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnExportClicked(object sender, RoutedEventArgs e)
+    private void ExportReport(ReportSummary report)
     {
-        var reports = _repository.ListReports();
-        if (reports.Count == 0)
-        {
-            var contentArea = this.FindControl<StackPanel>("ContentArea");
-            if (contentArea != null)
-                contentArea.Children.Add(new TextBlock { Text = "No reports to export.", FontSize = 16, Margin = new Thickness(16) });
-            return;
-        }
-
-        using (var dlg = new System.Windows.Forms.SaveFileDialog { Filter = "JSON (*.json)|*.json|Excel (*.xlsx)|*.xlsx", Title = "Export Report" })
+        using (var dlg = new System.Windows.Forms.SaveFileDialog { Filter = "JSON (*.json)|*.json|Excel (*.xlsx)|*.xlsx", Title = $"Export Report: {report.Name}" })
         {
             if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 try
                 {
-                    var first = _repository.GetReport(reports[0].Id);
-                    if (first == null) return;
+                    var detail = _repository.GetReport(report.Id);
+                    if (detail == null) return;
                     if (dlg.FileName.EndsWith(".xlsx"))
-                        ReportRepository.ExportToXlsx(first, dlg.FileName);
+                        ReportRepository.ExportToXlsx(detail, dlg.FileName);
                     else
-                        ReportRepository.ExportToJson(first, dlg.FileName);
+                        ReportRepository.ExportToJson(detail, dlg.FileName);
+                    
+                    var contentArea = this.FindControl<StackPanel>("ContentArea");
+                    if (contentArea != null)
+                        contentArea.Children.Add(new TextBlock { Text = $"Export successful: {Path.GetFileName(dlg.FileName)}", FontSize = 12, Foreground = Avalonia.Media.Brushes.Green, Margin = new Thickness(8) });
                 }
                 catch (Exception ex)
                 {
                     var contentArea = this.FindControl<StackPanel>("ContentArea");
                     if (contentArea != null)
-                        contentArea.Children.Add(new TextBlock { Text = $"Export error: {ex.Message}", FontSize = 14, Margin = new Thickness(16) });
+                        contentArea.Children.Add(new TextBlock { Text = $"Export error: {ex.Message}", FontSize = 12, Margin = new Thickness(8) });
                 }
             }
         }
