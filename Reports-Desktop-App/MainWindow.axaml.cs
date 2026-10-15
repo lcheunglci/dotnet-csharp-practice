@@ -246,7 +246,10 @@ public partial class MainWindow : Window
 
     private void OnExitClicked(object sender, RoutedEventArgs e)
     {
-        this.Close();
+        if (MessageBox.Show("Are you sure you want to exit?", "Confirm Exit", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+        {
+            this.Close();
+        }
     }
 
     private void OnImportClicked(object sender, RoutedEventArgs e)
