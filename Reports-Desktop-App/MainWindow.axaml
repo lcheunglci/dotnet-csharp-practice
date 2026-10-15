@@ -7,7 +7,7 @@
         Title="Reports Insight"
         Width="1000" Height="700">
 
-  <Window.Styles>
+    <Window.Styles>
     <Style Selector="Button">
       <Setter Property="Background" Value="#333333" />
       <Setter Property="Foreground" Value="White" />
@@ -18,29 +18,38 @@
     </Style>
   </Window.Styles>
 
-  <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="250,*">
+  <DockPanel>
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="File">
+        <MenuItem Header="Import CSV" Click="OnImportClicked"/>
+        <MenuItem Header="Exit" Click="OnExitClicked"/>
+      </MenuItem>
+    </Menu>
 
-    <!-- Sidebar Navigation -->
-    <Border Grid.RowSpan="3"
-            Background="#333333"
-            BorderBrush="#E5E7EB"
-            BorderThickness="0,0,1,0"
-            Padding="16">
-      <StackPanel Spacing="8">
-        <TextBlock Text="Reports Insight" FontSize="20" FontWeight="Bold" Margin="0,0,0,16" Foreground="#E8E8E8"/>
-        <TextBlock Text="Navigation" FontWeight="SemiBold" FontSize="12" Margin="0,16,0,4" Foreground="DarkGray" />
-        <Button x:Name="ReportsBtn" Content="Reports List" HorizontalAlignment="Stretch" Foreground="Black" Background="#FFF3E0" Padding="4,2" Click="OnReportsClicked"/>
-      </StackPanel>
-    </Border>
+    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="250,*">
 
-    <!-- Main Content Area -->
-    <ScrollViewer Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="16">
-      <StackPanel x:Name="ContentArea" Spacing="16" />
-    </ScrollViewer>
+      <!-- Sidebar Navigation -->
+      <Border Grid.RowSpan="3"
+              Background="#333333"
+              BorderBrush="#E5E7EB"
+              BorderThickness="0,0,1,0"
+              Padding="16">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Reports Insight" FontSize="20" FontWeight="Bold" Margin="0,0,0,16" Foreground="#E8E8E8"/>
+          <TextBlock Text="Navigation" FontWeight="SemiBold" FontSize="12" Margin="0,16,0,4" Foreground="DarkGray" />
+          <Button x:Name="ReportsBtn" Content="Reports List" HorizontalAlignment="Stretch" Foreground="Black" Background="#FFF3E0" Padding="4,2" Click="OnReportsClicked"/>
+        </StackPanel>
+      </Border>
 
-    <!-- Footer -->
-    <Border Grid.Row="2" Grid.Column="1" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Padding="12,8">
-      <TextBlock Text="Porting Electron/Angular Report App to Avalonia (PROJECT.md)" FontSize="12" Foreground="#6B7280" />
-    </Border>
-  </Grid>
+      <!-- Main Content Area -->
+      <ScrollViewer Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="16">
+        <StackPanel x:Name="ContentArea" Spacing="16" />
+      </ScrollViewer>
+
+      <!-- Footer -->
+      <Border Grid.Row="2" Grid.Column="1" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Padding="12,8">
+        <TextBlock Text="Porting Electron/Angular Report App to Avalonia (PROJECT.md)" FontSize="12" Foreground="#6B7280" />
+      </Border>
+    </Grid>
+  </DockPanel>
 </Window>

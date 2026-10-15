@@ -47,7 +47,7 @@ Files read from `Reports-Desktop-App/`:
 - `App.axaml`: Standard Avalonia `Application` root
 - `MainWindow.axaml` / `MainWindow.axaml.cs`: Default window
 
-**Status:** Implemented — `ReportRepository` (SQLite CRUD + CSV import + JSON/XLSX export), `MainWindow.axaml` UI with sidebar navigation, card-based reports list, working Import/Export/Delete, hover/readability fixed (black text on cards, dark button backgrounds), `ReportDetail` view with sort/edit, `Reports-Desktop-App.sln` added, build passes (`net10.0-windows`, 0 errors, 3 advisory warnings). `AGENTS.md` and `PROJECT.md` updated.
+**Status:** Implemented & verified — `ReportRepository` (SQLite CRUD + CSV import + JSON/XLSX export via `CsvHelper`/`ClosedXML`), card-based reports list (`MainWindow.axaml` + `MainWindow.axaml.cs`), working Import/Export/Delete, `ReportDetail` view with sort/edit. File menu (`Menu`: File → Import CSV / Exit), import button at list header top-right, export button on each card (exports that report). Hover/readability fixed (black text, dark button backgrounds, no white-on-white). Build passes (`net10.0-windows`, 0 errors). `AGENTS.md` and `PROJECT.md` updated.
 
 ---
 

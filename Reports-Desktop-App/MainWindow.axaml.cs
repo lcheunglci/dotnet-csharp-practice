@@ -244,6 +244,11 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnExitClicked(object sender, RoutedEventArgs e)
+    {
+        this.Close();
+    }
+
     private void OnImportClicked(object sender, RoutedEventArgs e)
     {
         using (var dlg = new System.Windows.Forms.OpenFileDialog { Filter = "CSV files (*.csv)|*.csv", Title = "Select CSV" })
