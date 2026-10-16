@@ -223,6 +223,44 @@ public class ReportRepository
     }
 
     /// <summary>
+    /// Updates all rows for a report (used when saving from DataGrid edits).
+    /// </summary>
+    public bool UpdateReportRows(int reportId, List<ReportRow> rows)
+    {
+        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        conn.Open();
+        using var tx = conn.BeginTransaction();
+
+        // Clear existing rows for this report
+        using var clearCmd = conn.CreateCommand();
+        clearCmd.Transaction = tx;
+        clearCmd.CommandText = "DELETE FROM report_rows WHERE report_id = @reportId";
+        clearCmd.Parameters.AddWithValue("@reportId", reportId);
+        clearCmd.ExecuteNonQuery();
+
+        // Re-insert all rows
+        using var insertCmd = conn.CreateCommand();
+        insertCmd.Transaction = tx;
+        insertCmd.CommandText = @"
+            INSERT INTO report_rows (report_id, date, order_id, description, cost)
+            VALUES (@reportId, @date, @orderId, @description, @cost)";
+
+        foreach (var row in rows)
+        {
+            insertCmd.Parameters.AddWithValue("@reportId", reportId);
+            insertCmd.Parameters.AddWithValue("@date", row.Date.ToString("yyyy-MM-dd"));
+            insertCmd.Parameters.AddWithValue("@orderId", row.OrderId);
+            insertCmd.Parameters.AddWithValue("@description", row.Description);
+            insertCmd.Parameters.AddWithValue("@cost", row.Cost);
+            insertCmd.ExecuteNonQuery();
+            insertCmd.Parameters.Clear();
+        }
+
+        tx.Commit();
+        return true;
+    }
+
+    /// <summary>
     /// Deletes a report (and its rows via CASCADE).
     /// </summary>
     public bool DeleteReport(int id)

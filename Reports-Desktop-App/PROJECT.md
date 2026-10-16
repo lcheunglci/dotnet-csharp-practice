@@ -42,12 +42,14 @@ CREATE TABLE report_rows (id INTEGER PRIMARY KEY AUTOINCREMENT, report_id INTEGE
 ## Current Avalonia project state
 
 Files read from `Reports-Desktop-App/`:
-- `Reports-Desktop-App.csproj`: Avalonia 12.1.4, Fluent theme, Inter font, DiagnosticsSupport (Debug only). Target `net10.0`. No extra packages.
+- `Reports-Desktop-App.csproj`: Avalonia 12.1.4, Fluent theme, Inter font, DiagnosticsSupport (Debug only), `Avalonia.Controls.DataGrid` (12.1.2), `CsvHelper` (33.0.1), `Microsoft.Data.Sqlite` (8.0.2), `ClosedXML` (0.100.0). Target `net10.0-windows` with `<UseWindowsForms>true>` for file dialogs.
 - `Program.cs`: Standard Avalonia entry (`AppBuilder.Configure<App>().UsePlatformDetect().WithInterFont().LogToTrace()`)
 - `App.axaml`: Standard Avalonia `Application` root
-- `MainWindow.axaml` / `MainWindow.axaml.cs`: Default window
+- `MainWindow.axaml` / `MainWindow.axaml.cs`: Sidebar navigation, `Menu` File bar (Import CSV/Exit), card-based reports list, table-based report detail view with inline editing, SQLite persistence via `ReportRepository`
+- `Models/ReportSummary.cs` / `ReportDetail.cs` / `ReportRow.cs`: Data models
+- `Models/ReportRepository.cs`: SQLite repository, CSV parsing, JSON/XLSX export
 
-**Status:** Implemented & verified — `ReportRepository` (SQLite CRUD + CSV import + JSON/XLSX export via `CsvHelper`/`ClosedXML`), card-based reports list (`MainWindow.axaml` + `MainWindow.axaml.cs`), working Import/Export/Delete, `ReportDetail` view with sort/edit. File menu (`Menu`: File → Import CSV / Exit) with confirmation dialog, import button at list header top-right, export button on each card (exports that report). Hover/readability fixed (black text, dark button backgrounds, no white-on-white). Build passes (`net10.0-windows`, 0 errors). `AGENTS.md` and `PROJECT.md` updated.
+**Status:** Implemented & verified — `ReportRepository` (SQLite CRUD + CSV import + JSON/XLSX export via `CsvHelper`/`ClosedXML`), reports list with card-based layout, `Menu` File bar (Import CSV / Exit with confirmation dialog), import button at list header top-right, export button on each report card (exports that report). Report detail view shows rows as an editable **table (Grid layout)** with Date/Order ID/Description/Cost `TextBox` columns and a Save Changes button that persists edits via `UpdateReportRows`. Hover/readability fixed (black text, dark button backgrounds, no white-on-white). Build passes (`net10.0-windows`, 0 errors). `AGENTS.md` and `PROJECT.md` updated.
 
 ---
 

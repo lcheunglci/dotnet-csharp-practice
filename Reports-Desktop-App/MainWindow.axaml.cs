@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using Button = Avalonia.Controls.Button;
+using AvaloniaTextBox = Avalonia.Controls.TextBox;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -176,7 +178,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Show detail header
+        // Show header panel with Back button
         var headerPanel = new StackPanel
         {
             Orientation = Avalonia.Layout.Orientation.Horizontal,
@@ -189,35 +191,110 @@ public partial class MainWindow : Window
         headerPanel.Children.Add(backBtn);
         contentArea.Children.Add(headerPanel);
 
-        // Show rows info
-        contentArea.Children.Add(new TextBlock
+        // Show rows as table (Grid layout)
+        var tableGrid = new Grid
         {
-            Text = $"Report: {detail.Name} | Source: {detail.SourceFile} | Imported: {detail.ImportedAt:g} | Rows: {detail.Rows.Count}",
-            FontSize = 12,
-            Foreground = Avalonia.Media.Brushes.Gray,
-            Margin = new Thickness(8)
-        });
-
-        // Show rows as cards
-        foreach (var row in detail.Rows.Take(10)) // Show first 10 rows
-        {
-            var rowCard = new Border
+            Margin = new Thickness(16),
+            ColumnDefinitions =
             {
-                Margin = new Thickness(8),
-                Padding = new Thickness(10),
-                CornerRadius = new CornerRadius(6),
-                Background = Avalonia.Media.Brushes.LightGray,
-                BorderBrush = Avalonia.Media.Brushes.LightGray,
-                BorderThickness = new Thickness(1)
-            };
+                new ColumnDefinition { Width = new GridLength(120) },
+                new ColumnDefinition { Width = new GridLength(80) },
+                new ColumnDefinition { Width = new GridLength(300, GridUnitType.Star) },
+                new ColumnDefinition { Width = new GridLength(80) }
+            },
+            RowDefinitions = { new RowDefinition { Height = GridLength.Auto } }
+        };
 
-            var rowStack = new StackPanel { Spacing = 4 };
-            rowStack.Children.Add(new TextBlock { Text = $"Date: {row.Date:yyyy-MM-dd} | Order: {row.OrderId} | Cost: {row.Cost:C}", FontSize = 12, FontWeight = Avalonia.Media.FontWeight.Bold, Foreground = Avalonia.Media.Brushes.Black });
-            rowStack.Children.Add(new TextBlock { Text = row.Description, FontSize = 11, Foreground = Avalonia.Media.Brushes.DarkSlateGray });
+        // Header
+        tableGrid.Children.Add(new TextBlock { Text = "Date", FontWeight = Avalonia.Media.FontWeight.Bold, Margin = new Thickness(4) });
+        Grid.SetRow(tableGrid.Children[tableGrid.Children.Count - 1], 0);
+        Grid.SetColumn(tableGrid.Children[tableGrid.Children.Count - 1], 0);
 
-            rowCard.Child = rowStack;
-            contentArea.Children.Add(rowCard);
+        tableGrid.Children.Add(new TextBlock { Text = "Order ID", FontWeight = Avalonia.Media.FontWeight.Bold, Margin = new Thickness(4) });
+        Grid.SetRow(tableGrid.Children[tableGrid.Children.Count - 1], 0);
+        Grid.SetColumn(tableGrid.Children[tableGrid.Children.Count - 1], 1);
+
+        tableGrid.Children.Add(new TextBlock { Text = "Description", FontWeight = Avalonia.Media.FontWeight.Bold, Margin = new Thickness(4) });
+        Grid.SetRow(tableGrid.Children[tableGrid.Children.Count - 1], 0);
+        Grid.SetColumn(tableGrid.Children[tableGrid.Children.Count - 1], 2);
+
+        tableGrid.Children.Add(new TextBlock { Text = "Cost", FontWeight = Avalonia.Media.FontWeight.Bold, Margin = new Thickness(4) });
+        Grid.SetRow(tableGrid.Children[tableGrid.Children.Count - 1], 0);
+        Grid.SetColumn(tableGrid.Children[tableGrid.Children.Count - 1], 3);
+
+        var rowControls = new List<(AvaloniaTextBox dateBox, AvaloniaTextBox orderBox, AvaloniaTextBox descBox, AvaloniaTextBox costBox, ReportRow row)>();
+
+        int currentRow = 1;
+        foreach (var row in detail.Rows)
+        {
+            tableGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var dateBox = new AvaloniaTextBox { Text = row.Date.ToString("yyyy-MM-dd"), Margin = new Thickness(4) };
+            tableGrid.Children.Add(dateBox);
+            Grid.SetRow(dateBox, currentRow);
+            Grid.SetColumn(dateBox, 0);
+
+            var orderBox = new AvaloniaTextBox { Text = row.OrderId.ToString(), Margin = new Thickness(4) };
+            tableGrid.Children.Add(orderBox);
+            Grid.SetRow(orderBox, currentRow);
+            Grid.SetColumn(orderBox, 1);
+
+            var descBox = new AvaloniaTextBox { Text = row.Description, Margin = new Thickness(4) };
+            tableGrid.Children.Add(descBox);
+            Grid.SetRow(descBox, currentRow);
+            Grid.SetColumn(descBox, 2);
+
+            var costBox = new AvaloniaTextBox { Text = row.Cost.ToString(), Margin = new Thickness(4) };
+            tableGrid.Children.Add(costBox);
+            Grid.SetRow(costBox, currentRow);
+            Grid.SetColumn(costBox, 3);
+
+            rowControls.Add((dateBox, orderBox, descBox, costBox, row));
+            currentRow++;
         }
+
+        contentArea.Children.Add(tableGrid);
+
+        // Save Changes button
+        var saveBtn = new Button
+        {
+            Content = "Save Changes",
+            Background = Avalonia.Media.Brushes.LightBlue,
+            Foreground = Avalonia.Media.Brushes.Black,
+            Padding = new Thickness(8, 4),
+            Margin = new Thickness(16, 16, 0, 0)
+        };
+        saveBtn.Click += (s, e) => {
+            try
+            {
+                foreach (var item in rowControls)
+                {
+                    var dateBox = item.dateBox;
+                    var orderBox = item.orderBox;
+                    var descBox = item.descBox;
+                    var costBox = item.costBox;
+                    var row = item.row;
+                    if (dateBox != null && DateTime.TryParse(dateBox.Text, out var d))
+                        row.Date = d;
+                    if (orderBox != null && int.TryParse(orderBox.Text, out var o))
+                        row.OrderId = o;
+                    if (descBox != null)
+                        row.Description = descBox.Text;
+                    if (costBox != null && decimal.TryParse(costBox.Text, out var c))
+                        row.Cost = c;
+                }
+
+                _repository.UpdateReportRows(detail.Id, detail.Rows);
+                var msg = new TextBlock { Text = "Changes saved!", Foreground = Avalonia.Media.Brushes.Green, Margin = new Thickness(16, 8, 0, 0) };
+                contentArea.Children.Add(msg);
+            }
+            catch (Exception ex)
+            {
+                var msg = new TextBlock { Text = $"Save error: {ex.Message}", Foreground = Avalonia.Media.Brushes.Red, Margin = new Thickness(16, 8, 0, 0) };
+                contentArea.Children.Add(msg);
+            }
+        };
+        contentArea.Children.Add(saveBtn);
     }
 
     private void DeleteReport(ReportSummary report)
