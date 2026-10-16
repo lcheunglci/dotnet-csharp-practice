@@ -26,26 +26,20 @@
       </MenuItem>
     </Menu>
 
-    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="250,*">
-
-      <!-- Sidebar Navigation -->
-      <Border Grid.RowSpan="3"
-              Background="#333333"
-              BorderBrush="#E5E7EB"
-              BorderThickness="0,0,1,0"
-              Padding="16">
-        <StackPanel Spacing="8">
-          <TextBlock Text="Reports Insight" FontSize="20" FontWeight="Bold" Margin="0,0,0,16" Foreground="#E8E8E8"/>
-        </StackPanel>
-      </Border>
+    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*">
+      <!-- Header -->
+      <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="16,16,16,8">
+        <TextBlock Text="Reports Insight" FontSize="20" FontWeight="Bold" />
+        <Button x:Name="ImportBtn" Content="Import CSV" Margin="16,0,0,0" HorizontalAlignment="Right" Background="#E3F2FD" Foreground="Black" Padding="8,4" Click="OnImportClicked"/>
+      </StackPanel>
 
       <!-- Main Content Area -->
-      <ScrollViewer Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="16">
+      <ScrollViewer Grid.Row="1" Margin="16">
         <StackPanel x:Name="ContentArea" Spacing="16" />
       </ScrollViewer>
 
       <!-- Footer -->
-      <Border Grid.Row="2" Grid.Column="1" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Padding="12,8">
+      <Border Grid.Row="2" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Padding="12,8">
         <TextBlock Text="Porting Electron/Angular Report App to Avalonia (PROJECT.md)" FontSize="12" Foreground="#6B7280" />
       </Border>
     </Grid>
