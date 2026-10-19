@@ -61,6 +61,12 @@ dotnet-csharp-practice/
 - No formatter/linter config (no `.editorconfig`, `stylecop.json`, `Directory.Build.props`)
 - No `global.json` — uses machine-installed SDK
 
+## Budget-Desktop-App Roadmap (Planned)
+
+- **CSV import**: Load inflow/outflow from downloaded banking statements — borrow CSV loading layout and implementation from `Reports-Desktop-App/`
+- **Charts & insights**: Pie charts and graphs for weekly, monthly, yearly, and complete history of spendings and earnings
+- **Habit analysis**: Track spending patterns and net gains/losses over time
+
 ## Developer Workflow
 
 1. **Open in VS/VS Code**: Open `stockanalyzer/StockAnalyzer.sln` or work in `Budget-Desktop-App/` and `Reports-Desktop-App/` independently
