@@ -4,7 +4,18 @@
 
 ```
 dotnet-csharp-practice/
-├── Budget-Desktop-App/         # Avalonia UI app (.NET 10.0)
+├── Budget-Desktop-App/         # Avalonia UI app (.NET 10.0-windows) — budget tracking
+│   ├── Budget-Desktop-App.slnx   # Solution file
+│   ├── Budget-Desktop-App.csproj # Project file
+│   ├── Program.cs                # Avalonia entry point
+│   ├── App.axaml / App.axaml.cs  # Application root
+│   ├── MainWindow.axaml.cs       # Dashboard UI + CSV import
+│   ├── Models/
+│   │   ├── BudgetRow.cs          # Data model (date, description, category, amount, type)
+│   │   ├── BudgetDetail.cs       # Aggregated budget summary
+│   │   ├── BudgetRepository.cs   # SQLite CRUD + CSV parsing via CsvHelper
+│   │   └── BudgetViewModel.cs    # Budget metrics (income/expense/net per month)
+│   └── app.manifest
 ├── Reports-Desktop-App/         # Avalonia UI app (.NET 10.0)
 ├── stockanalyzer/               # Multi-project solution (.NET 6.0)
 │   ├── StockAnalyzer.Core/      # Core library (Newtonsoft.Json)
@@ -54,6 +65,14 @@ dotnet-csharp-practice/
 - Core library uses **Newtonsoft.Json 13.0.1** (not System.Text.Json)
 - Web API uses minimal ASP.NET Core (no controllers visible — likely Minimal APIs)
 - Avalonia projects use Avalonia 12.1.4
+- Budget-Desktop-App uses additionally: `CsvHelper 33.0.1`, `Microsoft.Data.Sqlite 8.0.2`, `ClosedXML 0.100.0`, `Avalonia.Controls.DataGrid 12.1.2`
+- Budget-Desktop-App target framework: `net10.0-windows` (uses Windows Forms for native file dialogs)
+
+### Budget-Desktop-App Dependencies
+- SQLite persistence at `~/budget.db` (configurable)
+- CSV import: expects columns `date, description, category, amount, type`
+- CSV parsing uses `CsvHelper` with configurable column names
+- Charts: placeholder section in UI — can integrate LiveCharts2 or other charting library
 
 ### No Automation Configured
 - No CI/CD (`.github/workflows/` absent)

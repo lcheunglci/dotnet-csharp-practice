@@ -2,8 +2,49 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
         x:Class="Budget_Desktop_App.MainWindow"
-        Title="Budget_Desktop_App">
-    Welcome to Avalonia!
+        Title="Budget Dashboard" Width="1000" Height="700">
+
+  <Window.Styles>
+    <Style Selector="Button">
+      <Setter Property="Background" Value="#333333"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button:pointerover">
+      <Setter Property="Background" Value="#333333"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+  </Window.Styles>
+
+  <DockPanel>
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="File">
+        <MenuItem Header="Import CSV" Click="OnImportClicked"/>
+        <MenuItem Header="Exit" Click="OnExitClicked"/>
+      </MenuItem>
+    </Menu>
+
+    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*">
+      <!-- Header -->
+      <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="16,16,16,8">
+        <TextBlock Text="Budget Dashboard" FontSize="20" FontWeight="Bold"/>
+        <Button x:Name="ImportBtn" Content="Import CSV" Margin="16,0,0,0"
+                Background="#E3F2FD" Foreground="Black" Padding="8,4"
+                Click="OnImportClicked"/>
+      </StackPanel>
+
+      <!-- Main Content Area -->
+      <ScrollViewer Grid.Row="1" Margin="16">
+        <StackPanel x:Name="ContentArea" Spacing="16"/>
+      </ScrollViewer>
+
+      <!-- Footer -->
+      <Border Grid.Row="2" Background="#F9FAFB" BorderBrush="#E5E7EB"
+              BorderThickness="0,1,0,0" Padding="12,8">
+        <TextBlock Text="Budget-Desktop-App — CSV import for inflow/outflow"
+                   FontSize="12" Foreground="#6B7280"/>
+      </Border>
+    </Grid>
+  </DockPanel>
 </Window>
