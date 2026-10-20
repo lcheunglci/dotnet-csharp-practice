@@ -144,7 +144,7 @@ public partial class MainWindow : Window
                 new ColumnDefinition { Width = new GridLength(120) },
                 new ColumnDefinition { Width = new GridLength(120, GridUnitType.Star) }
             },
-            RowDefinitions = { new RowDefinition { Height = GridLength.Auto } }
+            RowDefinitions = { new RowDefinition { Height = GridLength.Auto } } // Header row
         };
 
         monthlyTable.Children.Add(new TextBlock { Text = "Month", FontWeight = Avalonia.Media.FontWeight.Bold, Margin = new Thickness(4) });
@@ -160,19 +160,33 @@ public partial class MainWindow : Window
         Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 3);
 
         // Add monthly rows
+        int rowIndex = 1; // Start after header row (row 0)
         foreach (var month in monthlyData.Take(12)) // Show last 12 months
         {
+            // Add new row definition for this month's data
+            monthlyTable.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            // Month
             monthlyTable.Children.Add(new TextBlock { Text = month.Month, Margin = new Thickness(4) });
             Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 0);
+            Grid.SetRow(monthlyTable.Children[monthlyTable.Children.Count - 1], rowIndex);
 
+            // Income
             monthlyTable.Children.Add(new TextBlock { Text = month.Income.ToString("C"), Margin = new Thickness(4) });
             Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 1);
+            Grid.SetRow(monthlyTable.Children[monthlyTable.Children.Count - 1], rowIndex);
 
+            // Expenses
             monthlyTable.Children.Add(new TextBlock { Text = month.Expenses.ToString("C"), Margin = new Thickness(4) });
             Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 2);
+            Grid.SetRow(monthlyTable.Children[monthlyTable.Children.Count - 1], rowIndex);
 
+            // Net
             monthlyTable.Children.Add(new TextBlock { Text = month.Net.ToString("C"), Margin = new Thickness(4) });
             Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 3);
+            Grid.SetRow(monthlyTable.Children[monthlyTable.Children.Count - 1], rowIndex);
+
+            rowIndex++;
         }
 
         contentArea.Children.Add(monthlyTable);

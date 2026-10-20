@@ -1,0 +1,16 @@
+date,description,category,amount,type
+2026-10-01,Salary,Income,3500.00,Income
+2026-10-01,Rent,Housing,1200.00,Expense
+2026-10-02,Grocery Store,Groceries,85.50,Expense
+2026-10-03,Electric Bill,Utilities,65.00,Expense
+2026-10-05,Internet Bill,Utilities,99.99,Expense
+2026-10-08,Starbucks,Coffee,4.75,Expense
+2026-10-10,Salary,Income,3500.00,Income
+2026-10-12,Netflix,Entertainment,14.99,Expense
+2026-10-15,Gasoline,Transportation,45.00,Expense
+2026-10-18,Dinner,Restaurants,55.00,Expense
+2026-10-20,Amazon Purchase,Shopping,120.00,Expense
+2026-10-22,Electric Bill,Utilities,65.00,Expense
+2026-10-25,Salary,Income,3500.00,Income
+2026-10-28,Grocery Store,Groceries,92.30,Expense
+2026-10-30,Water Bill,Utilities,48.50,Expense

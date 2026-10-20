@@ -1,0 +1,5 @@
+date,description,category,amount,type
+2026-10-01,Paycheck,Income,2500.00,Income
+2026-10-02,Food,Food,50.00,Expense
+2026-10-03,Transportation,Transportation,30.00,Expense
+2026-10-04,Entertainment,Entertainment,25.00,Expense
