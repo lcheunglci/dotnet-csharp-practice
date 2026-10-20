@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using Avalonia;
 using Avalonia.Controls;
@@ -29,6 +30,9 @@ public partial class MainWindow : Window
 
         contentArea.Children.Clear();
 
+        // Get overall totals across all budgets
+        var totals = _repository.GetOverallTotals();
+
         // Add welcome/info header
         var infoPanel = new StackPanel
         {
@@ -38,7 +42,7 @@ public partial class MainWindow : Window
         };
         infoPanel.Children.Add(new TextBlock
         {
-            Text = "Welcome to Budget Dashboard",
+            Text = "Budget Dashboard",
             FontSize = 18,
             FontWeight = Avalonia.Media.FontWeight.Bold
         });
@@ -60,15 +64,15 @@ public partial class MainWindow : Window
         };
 
         // Total Spending Card
-        var spendingCard = CreateKpiCard("Total Spending", "$0.00", "#F87171");
+        var spendingCard = CreateKpiCard("Total Spending", totals.TotalExpenses.ToString("C"), "#F87171");
         kpiRow.Children.Add(spendingCard);
 
         // Total Earnings Card
-        var earningsCard = CreateKpiCard("Total Earnings", "$0.00", "#34D399");
+        var earningsCard = CreateKpiCard("Total Earnings", totals.TotalIncome.ToString("C"), "#34D399");
         kpiRow.Children.Add(earningsCard);
 
         // Net Gain/Loss Card
-        var netCard = CreateKpiCard("Net Gain/Loss", "$0.00", "#60A5FA");
+        var netCard = CreateKpiCard("Net Gain/Loss", totals.NetAmount.ToString("C"), "#60A5FA");
         kpiRow.Children.Add(netCard);
 
         contentArea.Children.Add(kpiRow);
@@ -126,6 +130,9 @@ public partial class MainWindow : Window
         };
         contentArea.Children.Add(monthlyHeader);
 
+        // Get monthly summary data
+        var monthlyData = _repository.GetMonthlySummary();
+
         // Simple monthly breakdown table
         var monthlyTable = new Grid
         {
@@ -152,6 +159,22 @@ public partial class MainWindow : Window
         monthlyTable.Children.Add(new TextBlock { Text = "Net", FontWeight = Avalonia.Media.FontWeight.Bold, Margin = new Thickness(4) });
         Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 3);
 
+        // Add monthly rows
+        foreach (var month in monthlyData.Take(12)) // Show last 12 months
+        {
+            monthlyTable.Children.Add(new TextBlock { Text = month.Month, Margin = new Thickness(4) });
+            Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 0);
+
+            monthlyTable.Children.Add(new TextBlock { Text = month.Income.ToString("C"), Margin = new Thickness(4) });
+            Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 1);
+
+            monthlyTable.Children.Add(new TextBlock { Text = month.Expenses.ToString("C"), Margin = new Thickness(4) });
+            Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 2);
+
+            monthlyTable.Children.Add(new TextBlock { Text = month.Net.ToString("C"), Margin = new Thickness(4) });
+            Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 3);
+        }
+
         contentArea.Children.Add(monthlyTable);
 
         // Recent transactions preview
@@ -169,10 +192,18 @@ public partial class MainWindow : Window
             Margin = new Thickness(8),
             Spacing = 4
         };
-        recentTable.Children.Add(CreateTransactionRow("2026-10-18", "$250.00", "Income", "Freelance"));
-        recentTable.Children.Add(CreateTransactionRow("2026-10-17", "$45.50", "Expense", "Coffee"));
-        recentTable.Children.Add(CreateTransactionRow("2026-10-16", "$300.00", "Income", "Project"));
-        recentTable.Children.Add(CreateTransactionRow("2026-10-15", "$75.00", "Expense", "Dinner"));
+
+        // Add recent transactions (up to 5)
+        var recentRows = _repository.GetRecentTransactions(5);
+        foreach (var row in recentRows)
+        {
+            recentTable.Children.Add(CreateTransactionRow(
+                row.Date.ToString("yyyy-MM-dd"),
+                row.Amount.ToString("C"),
+                row.Type,
+                row.Description
+            ));
+        }
         contentArea.Children.Add(recentTable);
     }
 

@@ -154,6 +154,110 @@ namespace Budget_Desktop_App.Models
             return detail;
         }
 
+        /// <summary>
+        /// Gets aggregated totals across all budgets in the database.
+        /// </summary>
+        public BudgetTotals GetOverallTotals()
+        {
+            using var conn = new SqliteConnection($"Data Source={_dbPath}");
+            conn.Open();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT 
+                    COALESCE(SUM(total_income), 0) as total_income,
+                    COALESCE(SUM(total_expenses), 0) as total_expenses,
+                    COALESCE(SUM(net_amount), 0) as net_amount
+                FROM budgets";
+
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                return new BudgetTotals
+                {
+                    TotalIncome = reader.GetDecimal(0),
+                    TotalExpenses = reader.GetDecimal(1),
+                    NetAmount = reader.GetDecimal(2)
+                };
+            }
+
+            return new BudgetTotals();
+        }
+
+        /// <summary>
+        /// Gets monthly breakdown of income/expenses across all budgets.
+        /// </summary>
+        public List<MonthlySummary> GetMonthlySummary()
+        {
+            using var conn = new SqliteConnection($"Data Source={_dbPath}");
+            conn.Open();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT 
+                    strftime('%Y-%m', date) as month,
+                    SUM(CASE WHEN type = 'Income' THEN amount ELSE 0 END) as income,
+                    SUM(CASE WHEN type = 'Expense' THEN amount ELSE 0 END) as expenses
+                FROM budget_rows
+                GROUP BY strftime('%Y-%m', date)
+                ORDER BY month DESC";
+
+            using var reader = cmd.ExecuteReader();
+            var results = new List<MonthlySummary>();
+            while (reader.Read())
+            {
+                var monthStr = reader.GetString(0);
+                // Convert YYYY-MM to readable format
+                if (DateTime.TryParseExact(monthStr + "-01", "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var monthDate))
+                {
+                    results.Add(new MonthlySummary
+                    {
+                        Month = monthDate.ToString("MMMM yyyy"),
+                        Income = reader.GetDecimal(1),
+                        Expenses = reader.GetDecimal(2),
+                        Net = reader.GetDecimal(1) - reader.GetDecimal(2)
+                    });
+                }
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Gets recent transactions across all budgets.
+        /// </summary>
+        public List<BudgetRow> GetRecentTransactions(int limit = 10)
+        {
+            using var conn = new SqliteConnection($"Data Source={_dbPath}");
+            conn.Open();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
+                SELECT id, budget_id, date, description, category, amount, type
+                FROM budget_rows
+                ORDER BY date DESC
+                LIMIT @limit";
+            cmd.Parameters.AddWithValue("@limit", limit);
+
+            using var reader = cmd.ExecuteReader();
+            var results = new List<BudgetRow>();
+            while (reader.Read())
+            {
+                results.Add(new BudgetRow
+                {
+                    Id = reader.GetInt32(0),
+                    BudgetId = reader.GetInt32(1),
+                    Date = reader.GetDateTime(2),
+                    Description = reader.GetString(3),
+                    Category = reader.GetString(4),
+                    Amount = reader.GetDecimal(5),
+                    Type = reader.GetString(6)
+                });
+            }
+
+            return results;
+        }
+
         public static List<BudgetRow> ParseCsv(string filePath)
         {
             var rows = new List<BudgetRow>();
@@ -214,5 +318,20 @@ namespace Budget_Desktop_App.Models
         public decimal TotalExpenses { get; set; }
         public decimal NetAmount { get; set; }
         public List<BudgetRow> Rows { get; set; } = new();
+    }
+
+    public class BudgetTotals
+    {
+        public decimal TotalIncome { get; set; } = 0m;
+        public decimal TotalExpenses { get; set; } = 0m;
+        public decimal NetAmount { get; set; } = 0m;
+    }
+
+    public class MonthlySummary
+    {
+        public string Month { get; set; } = string.Empty;
+        public decimal Income { get; set; } = 0m;
+        public decimal Expenses { get; set; } = 0m;
+        public decimal Net { get; set; } = 0m;
     }
 }
