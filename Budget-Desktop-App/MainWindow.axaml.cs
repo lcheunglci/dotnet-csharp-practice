@@ -1,13 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Shapes;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Avalonia;
+using SkiaSharp;
 using Budget_Desktop_App.Models;
 
 namespace Budget_Desktop_App;
@@ -29,9 +36,6 @@ public partial class MainWindow : Window
         if (contentArea == null) return;
 
         contentArea.Children.Clear();
-
-        // Get overall totals across all budgets
-        var totals = _repository.GetOverallTotals();
 
         // Add welcome/info header
         var infoPanel = new StackPanel
@@ -55,7 +59,8 @@ public partial class MainWindow : Window
         });
         contentArea.Children.Add(infoPanel);
 
-        // KPI Cards Row
+        // KPI Cards Row with real data from DB
+        var totals = _repository.GetOverallTotals();
         var kpiRow = new StackPanel
         {
             Orientation = Avalonia.Layout.Orientation.Horizontal,
@@ -63,18 +68,9 @@ public partial class MainWindow : Window
             Spacing = 16
         };
 
-        // Total Spending Card
-        var spendingCard = CreateKpiCard("Total Spending", totals.TotalExpenses.ToString("C"), "#F87171");
-        kpiRow.Children.Add(spendingCard);
-
-        // Total Earnings Card
-        var earningsCard = CreateKpiCard("Total Earnings", totals.TotalIncome.ToString("C"), "#34D399");
-        kpiRow.Children.Add(earningsCard);
-
-        // Net Gain/Loss Card
-        var netCard = CreateKpiCard("Net Gain/Loss", totals.NetAmount.ToString("C"), "#60A5FA");
-        kpiRow.Children.Add(netCard);
-
+        kpiRow.Children.Add(CreateKpiCard("Total Spending", totals.TotalExpenses.ToString("C"), "#F87171"));
+        kpiRow.Children.Add(CreateKpiCard("Total Earnings", totals.TotalIncome.ToString("C"), "#34D399"));
+        kpiRow.Children.Add(CreateKpiCard("Net Gain/Loss", totals.NetAmount.ToString("C"), "#60A5FA"));
         contentArea.Children.Add(kpiRow);
 
         // Chart placeholder section
@@ -99,26 +95,103 @@ public partial class MainWindow : Window
         });
         contentArea.Children.Add(chartHeader);
 
-        // Chart placeholder
-        var chartPlaceholder = new Border
+        // Chart using LiveChartsCore (v2.1.0-dev-798 for Avalonia 12)
+        try
         {
-            Margin = new Thickness(8),
-            Padding = new Thickness(12),
-            CornerRadius = new CornerRadius(8),
-            Background = Avalonia.Media.Brushes.White,
-            BorderBrush = Avalonia.Media.Brushes.LightGray,
-            BorderThickness = new Thickness(1),
-            Height = 200
-        };
-        chartPlaceholder.Child = new TextBlock
+            var chartSummary = _repository.GetMonthlySummary();
+            var incomeVal = chartSummary.FirstOrDefault()?.Income ?? 0m;
+            var expenseVal = chartSummary.FirstOrDefault()?.Expenses ?? 0m;
+
+            if (incomeVal == 0 && expenseVal == 0)
+            {
+                contentArea.Children.Add(new TextBlock
+                {
+                    Text = "No data yet — import a CSV (SampleData/october-2026.csv) to see charts",
+                    FontSize = 12,
+                    Foreground = Avalonia.Media.Brushes.Gray,
+                    Margin = new Thickness(8)
+                });
+            }
+            else
+            {
+                // Custom polyline pie chart (explicit colors, no arc geometry quirks)
+                var totalVal = (double)(incomeVal + expenseVal);
+                var incomePct = totalVal > 0 ? (double)incomeVal / totalVal : 0.5;
+                var expensePct = totalVal > 0 ? (double)expenseVal / totalVal : 0.5;
+
+                const double cx = 125, cy = 125, r = 100;
+                var green = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Colors.LightGreen);
+                var red = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Colors.IndianRed);
+                int sliceSteps = 120;
+                int incomeSteps = Math.Max(2, (int)Math.Round(sliceSteps * incomePct));
+                int expenseSteps = Math.Max(2, (int)Math.Round(sliceSteps * expensePct));
+
+                // Income wedge
+                var incomeFig = new PathFigure
+                {
+                    StartPoint = new Avalonia.Point(cx + r * Math.Cos(-Math.PI / 2), cy + r * Math.Sin(-Math.PI / 2)),
+                    IsFilled = true,
+                    IsClosed = true,
+                    Segments = new PathSegments()
+                };
+                for (int i = 1; i <= incomeSteps; i++)
+                {
+                    double a = -Math.PI / 2 + (i / (double)incomeSteps) * incomePct * 2 * Math.PI;
+                    incomeFig.Segments.Add(new LineSegment { Point = new Avalonia.Point(cx + r * Math.Cos(a), cy + r * Math.Sin(a)) });
+                }
+                incomeFig.Segments.Add(new LineSegment { Point = new Avalonia.Point(cx, cy) });
+
+                // Expense wedge continues clockwise
+                var expenseFig = new PathFigure
+                {
+                    StartPoint = new Avalonia.Point(cx + r * Math.Cos(-Math.PI / 2 + incomePct * 2 * Math.PI), cy + r * Math.Sin(-Math.PI / 2 + incomePct * 2 * Math.PI)),
+                    IsFilled = true,
+                    IsClosed = true,
+                    Segments = new PathSegments()
+                };
+                for (int i = 1; i <= expenseSteps; i++)
+                {
+                    double a = -Math.PI / 2 + incomePct * 2 * Math.PI + (i / (double)expenseSteps) * expensePct * 2 * Math.PI;
+                    expenseFig.Segments.Add(new LineSegment { Point = new Avalonia.Point(cx + r * Math.Cos(a), cy + r * Math.Sin(a)) });
+                }
+                expenseFig.Segments.Add(new LineSegment { Point = new Avalonia.Point(cx, cy) });
+
+                var piePanel = new StackPanel { Margin = new Thickness(8), Spacing = 12, Width = 700 };
+                var pieCanvas = new Canvas { Width = 250, Height = 250 };
+                pieCanvas.Children.Add(new Avalonia.Controls.Shapes.Path { Fill = green, Data = new PathGeometry { Figures = new PathFigures { incomeFig } } });
+                pieCanvas.Children.Add(new Avalonia.Controls.Shapes.Path { Fill = red, Data = new PathGeometry { Figures = new PathFigures { expenseFig } } });
+
+                var legendStack = new StackPanel { Orientation = Avalonia.Layout.Orientation.Vertical, Spacing = 4 };
+                legendStack.Children.Add(new TextBlock
+                {
+                    Text = $"Income: {incomeVal:C}  ({incomePct:P0})",
+                    Foreground = green,
+                    FontSize = 14,
+                    FontWeight = Avalonia.Media.FontWeight.Bold
+                });
+                legendStack.Children.Add(new TextBlock
+                {
+                    Text = $"Expenses: {expenseVal:C}  ({expensePct:P0})",
+                    Foreground = red,
+                    FontSize = 14,
+                    FontWeight = Avalonia.Media.FontWeight.Bold
+                });
+
+                piePanel.Children.Add(pieCanvas);
+                piePanel.Children.Add(legendStack);
+                contentArea.Children.Add(piePanel);
+            }
+        }
+        catch
         {
-            Text = "Chart Area — Pie charts for categories, bar charts for monthly trends",
-            FontSize = 14,
-            Foreground = Avalonia.Media.Brushes.Gray,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
-        };
-        contentArea.Children.Add(chartPlaceholder);
+            contentArea.Children.Add(new TextBlock
+            {
+                Text = "Chart area — LiveChartsCore ready",
+                FontSize = 12,
+                Foreground = Avalonia.Media.Brushes.Gray,
+                Margin = new Thickness(8)
+            });
+        }
 
         // Monthly breakdown section
         var monthlyHeader = new TextBlock
@@ -129,9 +202,6 @@ public partial class MainWindow : Window
             Margin = new Thickness(8)
         };
         contentArea.Children.Add(monthlyHeader);
-
-        // Get monthly summary data
-        var monthlyData = _repository.GetMonthlySummary();
 
         // Simple monthly breakdown table
         var monthlyTable = new Grid
@@ -144,7 +214,7 @@ public partial class MainWindow : Window
                 new ColumnDefinition { Width = new GridLength(120) },
                 new ColumnDefinition { Width = new GridLength(120, GridUnitType.Star) }
             },
-            RowDefinitions = { new RowDefinition { Height = GridLength.Auto } } // Header row
+            RowDefinitions = { new RowDefinition { Height = GridLength.Auto } }
         };
 
         monthlyTable.Children.Add(new TextBlock { Text = "Month", FontWeight = Avalonia.Media.FontWeight.Bold, Margin = new Thickness(4) });
@@ -159,34 +229,43 @@ public partial class MainWindow : Window
         monthlyTable.Children.Add(new TextBlock { Text = "Net", FontWeight = Avalonia.Media.FontWeight.Bold, Margin = new Thickness(4) });
         Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 3);
 
-        // Add monthly rows
-        int rowIndex = 1; // Start after header row (row 0)
-        foreach (var month in monthlyData.Take(12)) // Show last 12 months
+        // Add monthly rows from database
+        var monthlySummary = _repository.GetMonthlySummary();
+        int rowIndex = 1; // Row 0 is the header
+        foreach (var month in monthlySummary.Take(12))
         {
-            // Add new row definition for this month's data
             monthlyTable.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            // Month
             monthlyTable.Children.Add(new TextBlock { Text = month.Month, Margin = new Thickness(4) });
             Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 0);
             Grid.SetRow(monthlyTable.Children[monthlyTable.Children.Count - 1], rowIndex);
 
-            // Income
             monthlyTable.Children.Add(new TextBlock { Text = month.Income.ToString("C"), Margin = new Thickness(4) });
             Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 1);
             Grid.SetRow(monthlyTable.Children[monthlyTable.Children.Count - 1], rowIndex);
 
-            // Expenses
             monthlyTable.Children.Add(new TextBlock { Text = month.Expenses.ToString("C"), Margin = new Thickness(4) });
             Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 2);
             Grid.SetRow(monthlyTable.Children[monthlyTable.Children.Count - 1], rowIndex);
 
-            // Net
             monthlyTable.Children.Add(new TextBlock { Text = month.Net.ToString("C"), Margin = new Thickness(4) });
             Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 3);
             Grid.SetRow(monthlyTable.Children[monthlyTable.Children.Count - 1], rowIndex);
 
             rowIndex++;
+        }
+
+        if (monthlySummary.Count == 0)
+        {
+            monthlyTable.Children.Add(new TextBlock
+            {
+                Text = "No data yet — import a CSV to populate this table.",
+                FontSize = 12,
+                Foreground = Avalonia.Media.Brushes.Gray,
+                Margin = new Thickness(4)
+            });
+            Grid.SetColumn(monthlyTable.Children[monthlyTable.Children.Count - 1], 0);
+            Grid.SetRow(monthlyTable.Children[monthlyTable.Children.Count - 1], 1);
         }
 
         contentArea.Children.Add(monthlyTable);
@@ -207,16 +286,28 @@ public partial class MainWindow : Window
             Spacing = 4
         };
 
-        // Add recent transactions (up to 5)
+        // Add recent transactions from database
         var recentRows = _repository.GetRecentTransactions(5);
-        foreach (var row in recentRows)
+        if (recentRows.Count == 0)
         {
-            recentTable.Children.Add(CreateTransactionRow(
-                row.Date.ToString("yyyy-MM-dd"),
-                row.Amount.ToString("C"),
-                row.Type,
-                row.Description
-            ));
+            recentTable.Children.Add(new TextBlock
+            {
+                Text = "No transactions yet — import a CSV to see recent activity.",
+                FontSize = 12,
+                Foreground = Avalonia.Media.Brushes.Gray
+            });
+        }
+        else
+        {
+            foreach (var row in recentRows)
+            {
+                recentTable.Children.Add(CreateTransactionRow(
+                    row.Date.ToString("yyyy-MM-dd"),
+                    row.Amount.ToString("C"),
+                    row.Type,
+                    row.Description
+                ));
+            }
         }
         contentArea.Children.Add(recentTable);
     }
@@ -301,7 +392,7 @@ public partial class MainWindow : Window
                 try
                 {
                     var rows = BudgetRepository.ParseCsv(dlg.FileName);
-                    _repository.InsertBudget(Path.GetFileNameWithoutExtension(dlg.FileName), rows);
+                    _repository.InsertBudget(System.IO.Path.GetFileNameWithoutExtension(dlg.FileName), rows);
                     RefreshDashboard();
                 }
                 catch (Exception ex)
