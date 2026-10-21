@@ -19,10 +19,15 @@
   </Window.Styles>
 
   <DockPanel>
-    <Menu DockPanel.Dock="Top">
+    <Menu x:Name="MainMenu" DockPanel.Dock="Top">
       <MenuItem Header="File">
-        <MenuItem Header="Import CSV" Click="OnImportClicked"/>
-        <MenuItem Header="Exit" Click="OnExitClicked"/>
+        <MenuItem Header="Import CSV"/>
+        <MenuItem Header="Export Report"/>
+        <MenuItem Header="Exit"/>
+      </MenuItem>
+      <MenuItem Header="Theme">
+        <MenuItem Header="Light"/>
+        <MenuItem Header="Dark"/>
       </MenuItem>
     </Menu>
 

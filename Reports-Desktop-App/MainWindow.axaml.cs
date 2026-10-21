@@ -4,6 +4,8 @@ using System.IO;
 using System.Windows.Forms;
 using Button = Avalonia.Controls.Button;
 using AvaloniaTextBox = Avalonia.Controls.TextBox;
+using AvaloniaMenu = Avalonia.Controls.Menu;
+using AvaloniaMenuItem = Avalonia.Controls.MenuItem;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -21,6 +23,37 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _repository = new ReportRepository();
+
+        // Wire menu events by header text (MenuItem nested items aren't initialized as partial-class fields)
+        if (this.FindControl<AvaloniaMenu>("MainMenu") is AvaloniaMenu mainMenu)
+        {
+            foreach (var fileItem in mainMenu.Items.OfType<AvaloniaMenuItem>())
+            {
+                if ((string?)fileItem.Header == "File")
+                {
+                    foreach (var sub in fileItem.Items.OfType<AvaloniaMenuItem>())
+                    {
+                        switch ((string?)sub.Header)
+                        {
+                            case "Import CSV": sub.Click += OnImportClicked; break;
+                            case "Export Report": sub.Click += (s, e) => { var first = _repository.ListReports().FirstOrDefault(); if (first != null) ExportReport(first); }; break;
+                            case "Exit": sub.Click += OnExitClicked; break;
+                        }
+                    }
+                }
+                else if ((string?)fileItem.Header == "Theme")
+                {
+                    foreach (var sub in fileItem.Items.OfType<AvaloniaMenuItem>())
+                    {
+                        switch ((string?)sub.Header)
+                        {
+                            case "Light": sub.Click += (s, e) => Avalonia.Application.Current.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light; break;
+                            case "Dark": sub.Click += (s, e) => Avalonia.Application.Current.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark; break;
+                        }
+                    }
+                }
+            }
+        }
 
         // Initialize with reports list
         RefreshReports();
@@ -327,6 +360,16 @@ public partial class MainWindow : Window
         {
             this.Close();
         }
+    }
+
+    private void OnLightThemeClicked(object sender, RoutedEventArgs e)
+    {
+        Avalonia.Application.Current.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
+    }
+
+    private void OnDarkThemeClicked(object sender, RoutedEventArgs e)
+    {
+        Avalonia.Application.Current.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
     }
 
     private void OnImportClicked(object sender, RoutedEventArgs e)
