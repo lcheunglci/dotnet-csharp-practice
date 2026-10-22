@@ -8,12 +8,12 @@
 
   <Window.Styles>
     <Style Selector="Button">
-      <Setter Property="Background" Value="#333333"/>
-      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="Background" Value="{DynamicResource AppButtonBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource AppOnAccentBrush}"/>
     </Style>
     <Style Selector="Button:pointerover">
-      <Setter Property="Background" Value="#333333"/>
-      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="Background" Value="{DynamicResource AppButtonBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource AppOnAccentBrush}"/>
     </Style>
   </Window.Styles>
 
@@ -21,6 +21,7 @@
     <Menu DockPanel.Dock="Top">
       <MenuItem Header="File">
         <MenuItem Header="Import CSV" Click="OnImportClicked"/>
+        <MenuItem Header="Toggle Theme" Click="OnToggleThemeClicked"/>
         <MenuItem Header="Exit" Click="OnExitClicked"/>
       </MenuItem>
     </Menu>
@@ -28,9 +29,11 @@
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*">
       <!-- Header -->
       <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="16,16,16,8">
-        <TextBlock Text="Budget Dashboard" FontSize="20" FontWeight="Bold"/>
+        <TextBlock Text="Budget Dashboard" FontSize="20" FontWeight="Bold"
+                   Foreground="{DynamicResource AppTextBrush}"/>
         <Button x:Name="ImportBtn" Content="Import CSV" Margin="16,0,0,0"
-                Background="#E3F2FD" Foreground="Black" Padding="8,4"
+                Background="{DynamicResource AppButtonBrush}"
+                Foreground="{DynamicResource AppOnAccentBrush}" Padding="8,4"
                 Click="OnImportClicked"/>
       </StackPanel>
 
@@ -40,10 +43,11 @@
       </ScrollViewer>
 
       <!-- Footer -->
-      <Border Grid.Row="2" Background="#F9FAFB" BorderBrush="#E5E7EB"
+      <Border Grid.Row="2" Background="{DynamicResource AppFooterBrush}"
+              BorderBrush="{DynamicResource AppBorderBrush}"
               BorderThickness="0,1,0,0" Padding="12,8">
         <TextBlock Text="Budget-Desktop-App — CSV import for inflow/outflow"
-                   FontSize="12" Foreground="#6B7280"/>
+                   FontSize="12" Foreground="{DynamicResource AppMutedTextBrush}"/>
       </Border>
     </Grid>
   </DockPanel>

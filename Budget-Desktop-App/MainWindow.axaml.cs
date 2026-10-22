@@ -411,6 +411,12 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnToggleThemeClicked(object? sender, RoutedEventArgs e)
+    {
+        var app = Avalonia.Application.Current as App;
+        app?.ToggleTheme();
+    }
+
     private void OnExitClicked(object? sender, RoutedEventArgs e)
     {
         if (MessageBox.Show("Are you sure you want to exit?", "Confirm Exit",
