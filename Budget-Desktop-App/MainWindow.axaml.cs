@@ -419,11 +419,7 @@ public partial class MainWindow : Window
 
     private void OnExitClicked(object? sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show("Are you sure you want to exit?", "Confirm Exit",
-                           MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-        {
-            this.Close();
-        }
+        this.Close();
     }
 
     private void InitializeComponent()
