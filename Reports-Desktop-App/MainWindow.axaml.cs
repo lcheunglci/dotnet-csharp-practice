@@ -6,6 +6,7 @@ using Button = Avalonia.Controls.Button;
 using AvaloniaTextBox = Avalonia.Controls.TextBox;
 using AvaloniaMenu = Avalonia.Controls.Menu;
 using AvaloniaMenuItem = Avalonia.Controls.MenuItem;
+using AvaloniaApplication = Avalonia.Application;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -18,6 +19,7 @@ namespace Reports_Desktop_App;
 public partial class MainWindow : Window
 {
     private ReportRepository _repository;
+    private TrayIcon? _trayIcon;
 
     public MainWindow()
     {
@@ -55,8 +57,38 @@ public partial class MainWindow : Window
             }
         }
 
+        // --- Tray Icon ---
+        var iconFile = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+        System.Diagnostics.Debug.WriteLine($"[Tray] icon file exists: {File.Exists(iconFile)}  path: {iconFile}");
+        _trayIcon = new TrayIcon
+        {
+            IsVisible = true,
+            Icon = File.Exists(iconFile) ? new WindowIcon(iconFile) : null,
+            ToolTipText = "Reports Insight"
+        };
+        System.Diagnostics.Debug.WriteLine($"[Tray] icon loaded: {(_trayIcon.Icon != null)}");
+
+        // Tray context menu
+        var nativeMenu = new Avalonia.Controls.NativeMenu();
+        var openItem = new Avalonia.Controls.NativeMenuItem("Open / Restore");
+        openItem.Click += (_, _) => { this.Show(); this.WindowState = WindowState.Normal; };
+        nativeMenu.Items.Add(openItem);
+        var exitItem = new Avalonia.Controls.NativeMenuItem("Exit");
+        exitItem.Click += (_, _) => this.Close();
+        nativeMenu.Items.Add(exitItem);
+        _trayIcon.Menu = nativeMenu;
+
         // Initialize with reports list
         RefreshReports();
+
+        // Show window immediately so tray icon appears
+        this.Show();
+    }
+
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        e.Cancel = true;
+        this.Hide();
     }
 
     /// <summary>
